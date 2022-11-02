@@ -1,0 +1,3 @@
+/root/camtest/build/CMakeFiles/rebuild_cache.dir
+/root/camtest/build/CMakeFiles/camera_hal3.dir
+/root/camtest/build/CMakeFiles/edit_cache.dir

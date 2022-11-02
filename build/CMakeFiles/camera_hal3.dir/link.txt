@@ -1,0 +1,1 @@
+/usr/bin/g++   -o0 -ggdb   CMakeFiles/camera_hal3.dir/CameraHAL3Main.cpp.o  -o camera_hal3 -lpthread ../camera_hal3_lib.a -ldl -lcamera_metadata -lcutils -lutils -llog 

@@ -12,7 +12,7 @@
 
 ## Run
 1. cd catkin_ws
-( [camera id] [yuv420_8bit_previwe_weight] [yuv420_8bit_height] [jpeg_weight] [jpeg_height] )
+* ( [camera id] [yuv420_8bit_previwe_weight] [yuv420_8bit_height] [jpeg_weight] [jpeg_height] )
 3. ./build/stream_hal3 0 1920 1080 1920 1080
 
 ## Function

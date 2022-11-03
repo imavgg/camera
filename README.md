@@ -1,6 +1,6 @@
 # Camera
 ## Resource
-* Cmaera: https://github.com/quic/sample-apps-for-Qualcomm-Robotics-RB5-platform/tree/master/camera-hal3-sample
+* Camera: https://github.com/quic/sample-apps-for-Qualcomm-Robotics-RB5-platform/tree/master/camera-hal3-sample
 * Image_transport: http://wiki.ros.org/image_transport/Tutorials/PublishingImages
 
 ## Build 

@@ -76,9 +76,8 @@
   <description>The RB5 camera package</description>
   <maintainer email="mike.shomin@gmail.com">mshomin</maintainer>
   <license>BSD</license>
-
-  <buildtool_depend>catkin</buildtool_depend>
-
+<build_depend>cv_bridge</build_depend>
+<build_depend>opencv2</build_depend>
 
 
   <build_depend>roscpp</build_depend>
@@ -95,6 +94,7 @@
 
 
 
+<run_depend>cv_bridge</run_depend>
   <run_depend>roscpp</run_depend>
 
   <run_depend>image_transport</run_depend>
@@ -103,8 +103,10 @@
 
   <run_depend>sensor_msgs</run_depend>
 
+  <run_depend>message_runtime</run_depend>
+  <run_depend>opencv2</run_depend>
 
-
+<buildtool_depend>catkin</buildtool_depend>
 
 
 </package>

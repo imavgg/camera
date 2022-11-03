@@ -104,7 +104,6 @@ int initial_module()
         fprintf(stderr, "Init camera failed. ret=%d\n", result);
         return result;
     }
-
     if (cameraModule->get_vendor_tag_ops) {
         vendor_tag_ops = vendor_tag_ops_t();
         cameraModule->get_vendor_tag_ops(&vendor_tag_ops);

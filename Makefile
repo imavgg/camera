@@ -8,7 +8,8 @@ LFLAGS = -pthread
 LIBS = -ldl -lcamera_metadata -lcutils -lutils -llog
 
 SRCS = \
-	   CameraHAL3Main.cpp \
+           hal3_continous.cpp \
+	   #CameraHAL3Main.cpp \
 	   CameraHAL3Config.cpp \
 	   CameraHAL3Buffer.cpp \
 	   CameraHAL3Snapshot.cpp \
@@ -16,7 +17,7 @@ SRCS = \
 
 OBJS = $(SRCS:.cpp=.o)
 
-EXEC = camera_hal3
+EXEC = ccntinous_hal3
 
 all: $(EXEC)
 

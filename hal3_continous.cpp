@@ -18,11 +18,12 @@
 // stream to ros
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
+// opencv
 #include <opencv2/highgui/highgui.hpp>
 #include <cv_bridge/cv_bridge.h>
 // #include <opencv2/imgcodecs.hpp>
-
-
+// #include "opencv2/imgproc/imgproc.hpp"
+// #include "opencv2/core/core.hpp"
 
 #define CAPTURE_OUTPUT_DIR "CAPTURE"
 
@@ -32,10 +33,7 @@ static bool savePreviewNow = false;
 static std::mutex saveFrameMutex;
 static std::condition_variable saveFrameCondition;
 
-ros::NodeHandle nh;
-
-image_transport::ImageTransport it(nh);
-image_transport::Publisher pub = it.advertise("camera/image", 1);
+cv::Mat image;
 // Callback from camera module
 // Parameters:
 //   const struct camera_module_callbacks* callbacks
@@ -109,13 +107,17 @@ int initial_module()
     }
 
     cameraModule->common.dso = fd;
-    printf("Camera HAL library loaded.\n");
+    // printf("Camera HAL library loaded.\n");
 
     printf("Initialize cameras...\n");
     result = cameraModule->init();
     if (result != 0) {
         fprintf(stderr, "Init camera failed. ret=%d\n", result);
         return result;
+    }else{  
+        // fprintf(stderr, "Init camera success. ret=%d\n", result);
+        // return result;
+
     }
 
     if (cameraModule->get_vendor_tag_ops) {
@@ -176,6 +178,10 @@ void preview_callback(BufferBlock* buffer, int frameNum)
         printf("Save preview frame %d to:\n %s\n", frameNum, filePath);
         savePreviewNow = false;
         saveFrameCondition.notify_all();
+        image = cv::imread(filePath,cv::IMREAD_COLOR) ;  
+        // yuv to bgr
+        // cv::cvtColor(image, image, cv::COLOR_YUV2BGR_NV12);  
+
     }
 }
 
@@ -195,11 +201,10 @@ void snapshot_callback(BufferBlock* buffer, int frameNum)
     saveFrameCondition.notify_all();
 
     //Reads an image from a buffer in memory.
-    // cv::Mat image = cv::imdecode(buffer,cv::IMREAD_COLOR );   
-    cv::Mat image = cv::imread(filePath,cv::IMREAD_COLOR) ;    
-    sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", image).toImageMsg();
-    printf("image to ros.\n");
-    pub.publish(msg);
+    // cv::Mat image = cv::imdecode(buffer,cv::IMREAD_COLOR ); 
+
+    image = cv::imread(filePath,cv::IMREAD_COLOR) ;    
+
 }
 
 
@@ -234,14 +239,20 @@ static float getlineToFloat(std::string prompt);
 int main(int argc, char *argv[])
 {
 
+
     ros::init(argc, argv, "image_publisher");
 
+    ros::NodeHandle nh;
+
+    image_transport::ImageTransport it(nh);
+    image_transport::Publisher pub = it.advertise("camera/image", 1);
     int ret;
     int camera_id, preview_width, preview_height, snapshot_width, snapshot_height;
     bool finished = false;
     std::string command;
 
 
+// Initial Camera Paramters
     if (argc != 6) {
         fprintf(stderr, "Usage: %s [camera id] [preview width] [preview height] [snapshot width] [snapshot height]\n", argv[0]);
         return -1;
@@ -258,6 +269,16 @@ int main(int argc, char *argv[])
     snapshot_width = atoi(argv[4]);
     snapshot_height = atoi(argv[5]);
 
+
+    CamxHAL3Config* conf = new CamxHAL3Config();
+    conf->cameraId = camera_id;
+    conf->previewStream.width = preview_width;
+    conf->previewStream.height = preview_height;
+    conf->previewStream.format = HAL_PIXEL_FORMAT_YCBCR_420_888;
+    conf->snapshotStream.width = snapshot_width;
+    conf->snapshotStream.height = snapshot_height;
+    conf->snapshotStream.format = HAL_PIXEL_FORMAT_BLOB;
+    // Initial Camera (loop initial)
     ret = initial_module();
     if (ret != 0) {
         fprintf(stderr, "Initial camera HAL module failed\n");
@@ -270,60 +291,54 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    CamxHAL3Config* conf = new CamxHAL3Config();
-    conf->cameraId = camera_id;
-    conf->previewStream.width = preview_width;
-    conf->previewStream.height = preview_height;
-    conf->previewStream.format = HAL_PIXEL_FORMAT_YCBCR_420_888;
-    conf->snapshotStream.width = snapshot_width;
-    conf->snapshotStream.height = snapshot_height;
-    conf->snapshotStream.format = HAL_PIXEL_FORMAT_BLOB;
-
-
-
-
     ret = ::startPreview(cameraModule, conf, &cameraStreamCallbacks);
     if (ret < 0) {
         fprintf(stderr, "exit\n");
         return -1;
     }
 
-    printf("Press h for help.\n");
 
-    ros::Rate loop_rate(5);
+    int count =1;
+    ros::Rate loop_rate(10);
+    while (nh.ok()) {
+        // while(finished == false) {
+        
 
-    while(finished == false) {
-      
+    
+        // PUBLISH IMAGE to JPG and YUV
+
         // dumpPreviewFrame();
-        // waitSaveFrame();
-   
+
+        ::snapshot();
+
+        waitSaveFrame();
 
 
-        while (nh.ok()) {
-            // cv::Mat image = cv::imread(argv[1], cv::IMREAD_COLOR);
-            // sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "yuv422", image).toImageMsg();
-            // sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", image).toImageMsg();
+        sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", image).toImageMsg();
 
- 
-            ::snapshot();
+        printf("image %i to ros.\n",count);
+        pub.publish(msg);
+        
+     
+        // }
 
-            waitSaveFrame();
 
- 
-            ros::spinOnce();
-            loop_rate.sleep();
-        }
 
-       
+
+        ros::spinOnce();
+
+        loop_rate.sleep();
+        count ++;
+
+
+
     }
+        // ::stopPreview();
 
-    ::stopPreview();
+        // // close camera 
 
-    if (cameraModule != NULL && cameraModule->common.dso != NULL) {
-        dlclose(cameraModule->common.dso);
-        cameraModule = NULL;
-    }
-
-    return 0;
+        // if (cameraModule != NULL && cameraModule->common.dso != NULL) {
+        //     dlclose(cameraModule->common.dso);
+        //     cameraModule = NULL;
+        // }
 }
-

@@ -19,6 +19,7 @@
 * Save image flie (Streamming) to folder (build/CAPTURE/***.yuv or ***.jpg)
 
 * Run with ROS command (rosrun) --> not working
+ * but use "stream_hal3" command to stream to ros 
 
 * OPENCV read image file (build/CAPTURE/***.yuv or ***.jpg) to ROS
   * Read JPG with opencv read with encode format "bgr8" is OK

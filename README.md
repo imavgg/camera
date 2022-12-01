@@ -1,4 +1,6 @@
 # Camera
+
+* 新增test.cpp 使用 thread 讀buffer 但是速度一樣慢
 ## Resource
 * Camera: https://github.com/quic/sample-apps-for-Qualcomm-Robotics-RB5-platform/tree/master/camera-hal3-sample
 * Image_transport: http://wiki.ros.org/image_transport/Tutorials/PublishingImages
